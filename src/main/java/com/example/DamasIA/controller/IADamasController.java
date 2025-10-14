@@ -1,15 +1,19 @@
 package com.example.DamasIA.controller;
 
+import com.example.DamasIA.dto.Movimientos;
 import com.example.DamasIA.dto.Scenary;
 import org.springframework.stereotype.Controller;
 
-import java.util.List;
+import java.util.*;
 
 @Controller
 public class IADamasController {
-    public Integer sumAllPieces(Scenary scenary) {
+
+    private List<List<Integer>> scenaryBoard;
+
+    public Movimientos sumAllPieces(List<List<Integer>> board) {
         int suma = 0;
-        List<List<Integer>> board = scenary.getBoard();
+        scenaryBoard = board;
         for (int i=0; i<board.size(); i++){
             for(int j=0; j<board.get(i).size(); j++) {
                 suma += board.get(i).get(j);
@@ -21,7 +25,36 @@ public class IADamasController {
             }
             System.out.println("");
         }
-        System.out.println("Pieza: ["+ scenary.getPiece().get(0)+","+scenary.getPiece().get(1)+"]");
-        return suma;
+        int row = 2;
+        int col = 3;
+        List<List<Integer>> movesPosible = new ArrayList<>();
+        if (returnPiece(row+1, col-1)== 0){
+            List<Integer> pos = new ArrayList<>();
+            pos.add(row+1);
+            pos.add(col-1);
+            movesPosible.add(pos);
+        }
+        if (returnPiece(row+1, col+1)== 0){
+            List<Integer> pos = new ArrayList<>();
+            pos.add(row+1);
+            pos.add(col+1);
+            movesPosible.add(pos);
+        }
+        Random r= new Random();
+        Movimientos movimientos = new Movimientos();
+
+        // Generate random integers in range 0 to 999
+        int r1 = r.nextInt(2);
+        Map<List<Integer>, List<Integer>> move = new HashMap<>();
+        move.put(movesPosible.get(r1), new ArrayList<>());
+        movimientos.setMoves(move);
+        List<Integer> piece = new ArrayList<>();
+        piece.add(2);
+        piece.add(3);
+        movimientos.setPiece(piece);
+        return movimientos;
+    }
+    private Integer returnPiece(int row, int col){
+        return scenaryBoard.get(row).get(col);
     }
 }

@@ -4,11 +4,9 @@ import java.util.List;
 
 public class Scenary {
     List<List<Integer>> board;
-    List<Integer> piece;
 
-    public Scenary(List<List<Integer>> board, List<Integer> piece) {
+    public Scenary(List<List<Integer>> board) {
         this.board = board;
-        this.piece = piece;
     }
 
     public List<List<Integer>> getBoard() {
@@ -19,11 +17,4 @@ public class Scenary {
         this.board = board;
     }
 
-    public List<Integer> getPiece() {
-        return piece;
-    }
-
-    public void setPiece(List<Integer> piece) {
-        this.piece = piece;
-    }
 }

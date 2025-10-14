@@ -1,6 +1,7 @@
 package com.example.DamasIA.service;
 
 import com.example.DamasIA.controller.IADamasController;
+import com.example.DamasIA.dto.Movimientos;
 import com.example.DamasIA.dto.Scenary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,20 +23,12 @@ public class IADamasRest {
     IADamasController iaDamasController;
 
     @PostMapping("/nextMove")
-    public ResponseEntity<Map<List<Integer>,List<Integer>>> nextMove(@RequestBody Scenary scenary) {
+    public ResponseEntity<Movimientos> nextMove(@RequestBody Scenary scenary) {
         try {
             System.out.println("nextMove");
-            int suma = iaDamasController.sumAllPieces(scenary);
-            List<Integer> posNext = new ArrayList<>();
-            posNext.add(1);
-            posNext.add(2);
-            List<Integer> posSkipped = new ArrayList<>();
-            posSkipped.add(1);
-            posSkipped.add(1);
-            Map<List<Integer>,List<Integer>> moves = new HashMap<>();
-            moves.put(posNext, posSkipped);
+            Movimientos movimientos = iaDamasController.sumAllPieces(scenary.getBoard());
 
-            return new ResponseEntity<>(moves, HttpStatus.OK);
+            return new ResponseEntity<>(movimientos, HttpStatus.OK);
         } catch (Exception e) {
             System.out.println(e);
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
