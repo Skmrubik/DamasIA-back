@@ -1,6 +1,7 @@
 package com.example.DamasIA.controller;
 
 import com.example.DamasIA.dto.Movimientos;
+import com.example.DamasIA.dto.Piece;
 import com.example.DamasIA.dto.Scenary;
 import org.springframework.stereotype.Controller;
 
@@ -25,45 +26,56 @@ public class IADamasController {
             }
             System.out.println("");
         }
-        List<Map<List<Integer>, List<Integer>>> movesPosibles = new ArrayList<>();
-        /*
+        List<Map<Piece, Piece>> movesPosibles = new ArrayList<>();
+        List<Piece> pieceOrigen = new ArrayList<>();
         for (int row=0; row<board.size(); row++){
             for(int col=0; col<board.get(row).size(); col++) {
                 if (board.get(row).get(col)==2){
                     if (returnMoveLeftSimple(row,col)==0){
-                        Map<List<Integer>, List<Integer>> move = new HashMap<>();
-
+                        Map<Piece, Piece> move = new HashMap<>();
+                        Piece piece1 = new Piece(row+1, col-1);
+                        Piece piece2 = new Piece();
+                        move.put(piece1, piece2);
+                        movesPosibles.add(move);
+                        pieceOrigen.add(new Piece(row, col));
+                    }
+                    if (returnMoveRightSimple(row,col)==0){
+                        Map<Piece, Piece> move = new HashMap<>();
+                        Piece piece1 = new Piece(row+1, col+1);
+                        Piece piece2 = new Piece();
+                        move.put(piece1, piece2);
+                        movesPosibles.add(move);
+                        pieceOrigen.add(new Piece(row, col));
                     }
                 }
             }
-        }*/
+        }
         int row = 2;
         int col = 3;
-        List<List<Integer>> movesPosible = new ArrayList<>();
+        /*
+        List<Piece> movesPosible = new ArrayList<>();
         if (returnPiece(row+1, col-1)== 0){
-            List<Integer> pos = new ArrayList<>();
-            pos.add(row+1);
-            pos.add(col-1);
-            movesPosible.add(pos);
+            Piece piece = new Piece(row+1, col-1);
+            movesPosible.add(piece);
         }
         if (returnPiece(row+1, col+1)== 0){
-            List<Integer> pos = new ArrayList<>();
-            pos.add(row+1);
-            pos.add(col+1);
-            movesPosible.add(pos);
-        }
+            Piece piece = new Piece(row+1, col+1);
+            movesPosible.add(piece);
+        }*/
         Random r= new Random();
         Movimientos movimientos = new Movimientos();
 
         // Generate random integers in range 0 to 999
-        int r1 = r.nextInt(2);
-        Map<List<Integer>, List<Integer>> move = new HashMap<>();
-        move.put(movesPosible.get(r1), new ArrayList<>());
-        movimientos.setMoves(move);
-        List<Integer> piece = new ArrayList<>();
-        piece.add(2);
-        piece.add(3);
-        movimientos.setPiece(piece);
+        int r1 = r.nextInt(movesPosibles.size());
+        Map<List<Integer>, List<Integer>> moveReturn = new HashMap<>();
+        Map<Piece, Piece> move = movesPosibles.get(r1);
+        for (Map.Entry<Piece, Piece> entry : move.entrySet()) {
+            // Aquí se obtiene la clave:
+            List<Integer> movSimple = entry.getKey().getPiece();
+            moveReturn.put(movSimple, new ArrayList<>());
+        }
+        movimientos.setMoves(moveReturn);
+        movimientos.setPiece(pieceOrigen.get(r1).getPiece());
         return movimientos;
     }
 

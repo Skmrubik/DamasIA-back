@@ -1,11 +1,16 @@
 package com.example.DamasIA.dto;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Piece {
     private List<Integer> xy;
 
+    public Piece(){
+        xy= new ArrayList<>();
+    }
     public Piece(Integer x, Integer y){
+        xy = new ArrayList<>();
         xy.add(x);
         xy.add(y);
     }
