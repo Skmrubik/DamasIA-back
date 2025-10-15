@@ -25,6 +25,18 @@ public class IADamasController {
             }
             System.out.println("");
         }
+        List<Map<List<Integer>, List<Integer>>> movesPosibles = new ArrayList<>();
+        /*
+        for (int row=0; row<board.size(); row++){
+            for(int col=0; col<board.get(row).size(); col++) {
+                if (board.get(row).get(col)==2){
+                    if (returnMoveLeftSimple(row,col)==0){
+                        Map<List<Integer>, List<Integer>> move = new HashMap<>();
+
+                    }
+                }
+            }
+        }*/
         int row = 2;
         int col = 3;
         List<List<Integer>> movesPosible = new ArrayList<>();
@@ -54,7 +66,21 @@ public class IADamasController {
         movimientos.setPiece(piece);
         return movimientos;
     }
+
     private Integer returnPiece(int row, int col){
         return scenaryBoard.get(row).get(col);
+    }
+
+    private Integer returnMoveLeftSimple(int row, int col){
+        if (col>0)
+            return scenaryBoard.get(row+1).get(col-1);
+        else
+            return -1;
+    }
+    private Integer returnMoveRightSimple(int row, int col){
+        if (col<7)
+            return scenaryBoard.get(row+1).get(col+1);
+        else
+            return -1;
     }
 }

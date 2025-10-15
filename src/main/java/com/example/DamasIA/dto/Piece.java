@@ -1,0 +1,21 @@
+package com.example.DamasIA.dto;
+
+import java.util.List;
+
+public class Piece {
+    private List<Integer> xy;
+
+    public Piece(Integer x, Integer y){
+        xy.add(x);
+        xy.add(y);
+    }
+    public Integer getX(){
+        return xy.get(0);
+    }
+    public Integer getY(){
+        return xy.get(1);
+    }
+    public List<Integer> getPiece(){
+        return xy;
+    }
+}
