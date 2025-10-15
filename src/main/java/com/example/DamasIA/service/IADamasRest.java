@@ -26,7 +26,7 @@ public class IADamasRest {
     public ResponseEntity<Movimientos> nextMove(@RequestBody Scenary scenary) {
         try {
             System.out.println("nextMove");
-            Movimientos movimientos = iaDamasController.sumAllPieces(scenary.getBoard());
+            Movimientos movimientos = iaDamasController.getRandomMovs(scenary.getBoard());
 
             return new ResponseEntity<>(movimientos, HttpStatus.OK);
         } catch (Exception e) {
