@@ -26,82 +26,95 @@ public class IADamasController {
             }
             System.out.println("");
         }
-        List<Map<Piece, Piece>> movesPosibles = new ArrayList<>();
-        List<Map<Piece, Piece>> movesSkipPosibles = new ArrayList<>();
-        List<Piece> pieceOrigen = new ArrayList<>();
-        List<Piece> pieceOrigenSkip = new ArrayList<>();
+        //List<Map<Piece, Piece>> movesPosibles = new ArrayList<>();
+        //List<Map<Piece, Piece>> movesSkipPosibles = new ArrayList<>();
+        List<Map<List<Integer>, List<Integer>>> movesPosibles = new ArrayList<>();
+        //List<Piece> pieceOrigen = new ArrayList<>();
+        //List<Piece> pieceOrigenSkip = new ArrayList<>();
+        List<Movimientos> movimientosPosibles = new ArrayList<>();
+        Movimientos movimientos = new Movimientos();
         for (int row = 0; row < board.size(); row++) {
             for (int col = 0; col < board.get(row).size(); col++) {
                 if (board.get(row).get(col) == 2) {
-                    if (returnMoveLeftSimple(row, col) == 0) {
-                        Map<Piece, Piece> move = new HashMap<>();
-                        Piece piece1 = new Piece(row + 1, col - 1);
-                        Piece piece2 = new Piece();
-                        move.put(piece1, piece2);
-                        movesPosibles.add(move);
-                        pieceOrigen.add(new Piece(row, col));
-                    }
-                    if (returnMoveRightSimple(row, col) == 0) {
-                        Map<Piece, Piece> move = new HashMap<>();
-                        Piece piece1 = new Piece(row + 1, col + 1);
-                        Piece piece2 = new Piece();
-                        move.put(piece1, piece2);
-                        movesPosibles.add(move);
-                        pieceOrigen.add(new Piece(row, col));
-                    }
-                    if (returnMoveLeftSkipped(row, col) == 0) {
-                        Map<Piece, Piece> move = new HashMap<>();
-                        Piece piece1 = new Piece(row + 2, col - 2);
-                        Piece piece2 = new Piece(row + 1, col - 1);
-                        move.put(piece1, piece2);
-                        movesSkipPosibles.add(move);
-                        pieceOrigenSkip.add(new Piece(row, col));
-                    }
-                    if (returnMoveRightSkipped(row, col) == 0) {
-                        Map<Piece, Piece> move = new HashMap<>();
-                        Piece piece1 = new Piece(row + 2, col + 2);
-                        Piece piece2 = new Piece(row + 1, col + 1);
-                        move.put(piece1, piece2);
-                        movesSkipPosibles.add(move);
-                        pieceOrigenSkip.add(new Piece(row, col));
+                    Map<List<Integer>, List<Integer>> moves = new HashMap<>();
+                    Piece piece = new Piece(row, col);
+                    explora(true, true, false, false, piece, piece,moves);
+                    Movimientos movimientosIter = new Movimientos();
+                    movimientosIter.setPiece(piece.getPiece());
+                    movimientosIter.setMoves(moves);
+                    if (moves.size()>0){
+                        movesPosibles.add(moves);
+                        movimientosPosibles.add(movimientosIter);
                     }
                 }
             }
         }
+        for (int i=0; i<movimientosPosibles.size(); i++){
+            movimientosPosibles.get(i).toStringMovs();
+        }
 
-        Random r = new Random();
-        Movimientos movimientos = new Movimientos();
-        if (!movesSkipPosibles.isEmpty()) {
-            int r1 = r.nextInt(movesSkipPosibles.size());
-            Map<List<Integer>, List<Integer>> moveReturn = new HashMap<>();
-            Map<Piece, Piece> move = movesSkipPosibles.get(r1);
-            for (Map.Entry<Piece, Piece> entry : move.entrySet()) {
-                // Aquí se obtiene la clave:
-                List<Integer> movPiece = entry.getKey().getPiece();
-                List<Integer> pieceSkipped = entry.getValue().getPiece();
-                moveReturn.put(movPiece, pieceSkipped);
-            }
-            movimientos.setMoves(moveReturn);
-            movimientos.setPiece(pieceOrigenSkip.get(r1).getPiece());
-            return movimientos;
-        }
-        else{
-            r = new Random();
-            // Generate random integers in range 0 to 999
-            int r2 = r.nextInt(movesPosibles.size());
-            Map<List<Integer>, List<Integer>> moveReturn = new HashMap<>();
-            Map<Piece, Piece> move = movesPosibles.get(r2);
-            for (Map.Entry<Piece, Piece> entry : move.entrySet()) {
-                // Aquí se obtiene la clave:
-                List<Integer> movSimple = entry.getKey().getPiece();
-                moveReturn.put(movSimple, new ArrayList<>());
-            }
-            movimientos.setMoves(moveReturn);
-            movimientos.setPiece(pieceOrigen.get(r2).getPiece());
-            return movimientos;
-        }
+        return movimientosPosibles.get(0);
     }
 
+    public Map<List<Integer>, List<Integer>> explora(boolean izq,boolean inicio, boolean saltoAnterior, boolean yaSaltado, Piece posInicial,
+                        Piece posActual, Map<List<Integer>, List<Integer>> moves){
+        if (!yaSaltado && inicio && posActual.getX()<7) {
+            if (returnMoveLeftSimple(posInicial.getX(), posInicial.getY()) == 0) {
+                Piece piece = new Piece(posInicial.getX() + 1, posInicial.getY() - 1);
+                List<Integer> movSimple = piece.getPiece();
+                List<Integer> aux = new ArrayList<>();
+                moves.put(movSimple, aux);
+            }
+            if (returnMoveRightSimple(posInicial.getX(), posInicial.getY()) == 0) {
+                Piece piece = new Piece(posInicial.getX() + 1, posInicial.getY() + 1);
+                List<Integer> movSimple = piece.getPiece();
+                List<Integer> aux = new ArrayList<>();
+                moves.put(movSimple, aux);
+            }
+            if (returnMoveLeftSimple(posInicial.getX(), posInicial.getY()) == 1) {
+                Piece piece = new Piece(posInicial.getX() + 1, posInicial.getY() - 1);
+                explora(true, false, true, false, posInicial, piece, moves);
+            }
+            if (returnMoveRightSimple(posInicial.getX(), posInicial.getY()) == 1) {
+                Piece piece = new Piece(posInicial.getX() + 1, posInicial.getY() + 1);
+                explora(false, false, true, false, posInicial, piece, moves);
+            }
+            return moves;
+        } else if (saltoAnterior && posActual.getX()<7){
+            if (izq){
+                if (returnMoveLeftSimple(posActual.getX(), posActual.getY()) == 0) {
+                    Piece pieceSkipped = new Piece(posActual.getX(), posActual.getY());
+                    Piece piece = new Piece(posActual.getX() + 1, posActual.getY() - 1);
+                    List<Integer> piecePropia = piece.getPiece();
+                    List<Integer> pieceSaltada = pieceSkipped.getPiece();
+                    moves.put(piecePropia, pieceSaltada);
+                    explora(izq, true, false, true, posInicial, piece, moves);
+                }
+                return moves;
+            } else {
+                if (returnMoveRightSimple(posActual.getX(), posActual.getY()) == 0) {
+                    Piece pieceSkipped = new Piece(posActual.getX(), posActual.getY());
+                    Piece piece = new Piece(posActual.getX() + 1, posActual.getY() + 1);
+                    List<Integer> piecePropia = piece.getPiece();
+                    List<Integer> pieceSaltada = pieceSkipped.getPiece();
+                    moves.put(piecePropia, pieceSaltada);
+                    explora(izq, true, false, true, posInicial, piece, moves);
+                }
+                return moves;
+            }
+        } else if (yaSaltado && inicio && posActual.getX()<7){
+            if (returnMoveLeftSimple(posActual.getX(), posActual.getY()) == 1) {
+                Piece piece = new Piece(posActual.getX() + 1, posActual.getY() - 1);
+                explora(true, false, true, true, posInicial, piece, moves);
+            }
+            if (returnMoveRightSimple(posActual.getX(), posActual.getY()) == 1) {
+                Piece piece = new Piece(posActual.getX() + 1, posActual.getY() + 1);
+                explora(false, false, true, true, posInicial, piece, moves);
+            }
+            return moves;
+        }
+        return moves;
+    }
     private Integer returnPiece(int row, int col){
         return scenaryBoard.get(row).get(col);
     }

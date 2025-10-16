@@ -29,4 +29,9 @@ public class Movimientos {
     public void setMoves(Map<List<Integer>, List<Integer>> moves) {
         this.moves = moves;
     }
+
+    public void toStringMovs(){
+        System.out.println("Pieza: ["+piece.get(0)+","+piece.get(1)+"]");
+        System.out.println("Movimientos: "+ moves);
+    }
 }
