@@ -38,7 +38,7 @@ public class IADamasController {
         for (int row = 0; row < board.size(); row++) {
             for (int col = 0; col < board.get(row).size(); col++) {
                 if (board.get(row).get(col) == 2) {
-                    Map<List<Integer>, List<Integer>> moves = new HashMap<>();
+                    Map<List<Integer>, List<Integer>> moves = new LinkedHashMap<>();
                     Piece piece = new Piece(row, col);
                     List<Piece> path = new ArrayList<>();
                     explora(true, true, false, false, piece, piece, path, paths,pathInit, false);
@@ -71,13 +71,25 @@ public class IADamasController {
         }*/
         Movimientos movimientosIter = new Movimientos();
         movimientosIter.setPiece(pathInit.get(0).getPiece());
-        Map<List<Integer>, List<Integer>> moves = new HashMap<>();
+        Map<List<Integer>, List<Integer>> moves = new LinkedHashMap<>();
         for (int i=0; i<paths.get(0).size(); i+=2){
             moves.put(paths.get(0).get(i).getPiece(), paths.get(0).get(i+1).getPiece());
         }
         movimientosIter.setMoves(moves);
         movimientosPosibles.add(movimientosIter);
-
+        doMove(movimientosIter);
+        System.out.println("ESCENARIO TRAS MOVIMIENTO");
+        for (int i = 0; i < scenaryBoard.size(); i++) {
+            for (int j = 0; j < scenaryBoard.get(i).size(); j++) {
+                suma += scenaryBoard.get(i).get(j);
+                if (scenaryBoard.get(i).get(j) == 0) {
+                    System.out.print("   ");
+                } else {
+                    System.out.print(" " + scenaryBoard.get(i).get(j).toString() + " ");
+                }
+            }
+            System.out.println("");
+        }
         return movimientosPosibles.get(0);
     }
 
@@ -164,6 +176,18 @@ public class IADamasController {
         return scenaryBoard.get(row).get(col);
     }
 
+    private void doMove(Movimientos movimientos){
+        List<Integer> piece = movimientos.getPiece();
+        List<List<Integer>> clavesOrdenadas = new ArrayList<>(movimientos.getMoves().keySet());
+        List<Integer> pieceFinal = clavesOrdenadas.get(clavesOrdenadas.size() - 1);
+        scenaryBoard.get(piece.get(0)).set(piece.get(1), 0);
+        scenaryBoard.get(pieceFinal.get(0)).set(pieceFinal.get(1), 2);
+        for (List<Integer> pieceSkipped : movimientos.getMoves().values()) {
+            if (!pieceSkipped.isEmpty()){
+                scenaryBoard.get(pieceSkipped.get(0)).set(pieceSkipped.get(1), 0);
+            }
+        }
+    }
     private Integer returnMoveLeftSimple(int row, int col){
         if (col>0 && row<7)
             return scenaryBoard.get(row+1).get(col-1);

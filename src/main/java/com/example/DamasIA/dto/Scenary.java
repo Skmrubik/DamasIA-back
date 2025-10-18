@@ -17,4 +17,8 @@ public class Scenary {
         this.board = board;
     }
 
+    public void setValuePosition(int x, int y, int value){
+        board.get(x).set(y, value);
+    }
+
 }

@@ -1,9 +1,6 @@
 package com.example.DamasIA.dto;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Movimientos {
     public List<Integer> piece;
@@ -11,7 +8,7 @@ public class Movimientos {
 
     public Movimientos() {
         piece = new ArrayList<>();
-        moves = new HashMap<>();
+        moves = new LinkedHashMap<>();
     }
 
     public List<Integer> getPiece() {
