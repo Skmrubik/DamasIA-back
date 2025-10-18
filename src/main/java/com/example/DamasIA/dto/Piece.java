@@ -24,6 +24,11 @@ public class Piece {
         return xy;
     }
     public String to_string(){
-        return "("+xy.get(0) + "," + xy.get(1)+")";
+        if (xy.isEmpty()) {
+            return "()";
+        } else {
+            return "("+xy.get(0) + "," + xy.get(1)+")";
+        }
+
     }
 }
