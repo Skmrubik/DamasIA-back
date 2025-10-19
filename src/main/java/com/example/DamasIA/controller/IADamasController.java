@@ -58,6 +58,7 @@ public class IADamasController {
 
         System.out.println("PATH "+paths.size());
         System.out.println("PATH INIT "+pathInit.size());
+        List<Integer> listHeuristics = new ArrayList<>();
         for(int i=0; i<pathInit.size(); i++){
             List<Piece> p = paths.get(i);
             Piece pieceInit = pathInit.get(i);
@@ -95,6 +96,7 @@ public class IADamasController {
             Scenary scenary4 = new Scenary(boardTest);
             doMove(scenary4, movimientosIter);
             int heuristic = heuristicScenary(scenary4);
+            listHeuristics.add(heuristic);
             System.out.print(" - "+ heuristic);
             System.out.println(" ");
         }
@@ -103,11 +105,19 @@ public class IADamasController {
         for (int i=0; i<movimientosPosibles.size(); i++){
             movimientosPosibles.get(i).toStringMovs();
         }*/
+        int indexHeuristic=0;
+        int maxHeuristic=0;
+        for (int i=0 ; i<listHeuristics.size(); i++){
+            if (listHeuristics.get(i)>maxHeuristic){
+                indexHeuristic= i;
+                maxHeuristic = listHeuristics.get(i);
+            }
+        }
         Movimientos movimientosIter = new Movimientos();
-        movimientosIter.setPiece(pathInit.get(0).getPiece());
+        movimientosIter.setPiece(pathInit.get(indexHeuristic).getPiece());
         Map<List<Integer>, List<Integer>> moves = new LinkedHashMap<>();
-        for (int i=0; i<paths.get(0).size(); i+=2){
-            moves.put(paths.get(0).get(i).getPiece(), paths.get(0).get(i+1).getPiece());
+        for (int i=0; i<paths.get(indexHeuristic).size(); i+=2){
+            moves.put(paths.get(indexHeuristic).get(i).getPiece(), paths.get(indexHeuristic).get(i+1).getPiece());
         }
 
         movimientosIter.setMoves(moves);
