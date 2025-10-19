@@ -14,14 +14,14 @@ public class IADamasController {
 
     public Movimientos getRandomMovs(List<List<Integer>> board) {
         int suma = 0;
-        scenaryBoard = board;
-        for (int i = 0; i < board.size(); i++) {
-            for (int j = 0; j < board.get(i).size(); j++) {
-                suma += board.get(i).get(j);
-                if (board.get(i).get(j) == 0) {
+        Scenary scenary = new Scenary(board);
+        for (int i = 0; i < scenary.getBoard().size(); i++) {
+            for (int j = 0; j < scenary.getBoard().get(i).size(); j++) {
+                suma += scenary.getBoard().get(i).get(j);
+                if (scenary.getBoard().get(i).get(j) == 0) {
                     System.out.print("   ");
                 } else {
-                    System.out.print(" " + board.get(i).get(j).toString() + " ");
+                    System.out.print(" " + scenary.getBoard().get(i).get(j).toString() + " ");
                 }
             }
             System.out.println("");
@@ -35,13 +35,14 @@ public class IADamasController {
         //List<Piece> pieceOrigenSkip = new ArrayList<>();
         List<Movimientos> movimientosPosibles = new ArrayList<>();
         Movimientos movimientos = new Movimientos();
+        //Scenary scenary = new Scenary(board);
         for (int row = 0; row < board.size(); row++) {
             for (int col = 0; col < board.get(row).size(); col++) {
                 if (board.get(row).get(col) == 2) {
                     Map<List<Integer>, List<Integer>> moves = new LinkedHashMap<>();
                     Piece piece = new Piece(row, col);
                     List<Piece> path = new ArrayList<>();
-                    explora(true, true, false, false, piece, piece, path, paths,pathInit, false);
+                    explora(scenary, true, true, false, false, piece, piece, path, paths,pathInit, false);
                     //pathInit.add(piece);
                     Movimientos movimientosIter = new Movimientos();
                     movimientosIter.setPiece(piece.getPiece());
@@ -77,15 +78,15 @@ public class IADamasController {
         }
         movimientosIter.setMoves(moves);
         movimientosPosibles.add(movimientosIter);
-        doMove(movimientosIter);
+        doMove(scenary, movimientosIter);
         System.out.println("ESCENARIO TRAS MOVIMIENTO");
-        for (int i = 0; i < scenaryBoard.size(); i++) {
-            for (int j = 0; j < scenaryBoard.get(i).size(); j++) {
-                suma += scenaryBoard.get(i).get(j);
-                if (scenaryBoard.get(i).get(j) == 0) {
+        for (int i = 0; i < scenary.getBoard().size(); i++) {
+            for (int j = 0; j < scenary.getBoard().get(i).size(); j++) {
+                suma += scenary.getBoard().get(i).get(j);
+                if (scenary.getBoard().get(i).get(j) == 0) {
                     System.out.print("   ");
                 } else {
-                    System.out.print(" " + scenaryBoard.get(i).get(j).toString() + " ");
+                    System.out.print(" " + scenary.getBoard().get(i).get(j).toString() + " ");
                 }
             }
             System.out.println("");
@@ -93,11 +94,11 @@ public class IADamasController {
         return movimientosPosibles.get(0);
     }
 
-    public Integer explora(boolean izq,boolean inicio, boolean saltoAnterior, boolean yaSaltado, Piece posInicial,
+    public Integer explora(Scenary scenary, boolean izq,boolean inicio, boolean saltoAnterior, boolean yaSaltado, Piece posInicial,
                         Piece posActual, List<Piece> path, List<List<Piece>> paths, List<Piece> pathInit, boolean pathInitAdd){
         if (!yaSaltado && inicio && posActual.getX()<7) {
-            int left = returnMoveLeftSimple(posInicial.getX(), posInicial.getY());
-            int right = returnMoveRightSimple(posInicial.getX(), posInicial.getY());
+            int left = returnMoveLeftSimple(scenary, posInicial.getX(), posInicial.getY());
+            int right = returnMoveRightSimple(scenary, posInicial.getX(), posInicial.getY());
             Piece pieceLeft = new Piece(posInicial.getX() + 1, posInicial.getY() - 1);
             Piece pieceRight = new Piece(posInicial.getX() + 1, posInicial.getY() + 1);
             if (left == 0) {
@@ -108,7 +109,7 @@ public class IADamasController {
                 pathInit.add(posInicial);
                 path.clear();
             } else if (left == 1) {
-                explora(true, false, true, false, posInicial, pieceLeft, path, paths, pathInit, false);
+                explora(scenary,true, false, true, false, posInicial, pieceLeft, path, paths, pathInit, false);
             }
             if (right == 0) {
                 path.add(pieceRight);
@@ -118,36 +119,37 @@ public class IADamasController {
                 pathInit.add(posInicial);
                 path.clear();
             } else if (right == 1) {
-                explora(false, false, true, false, posInicial, pieceRight,  path, paths, pathInit, false);
+                explora(scenary,false, false, true, false, posInicial, pieceRight,  path, paths, pathInit, false);
             }
             return 0;
         } else if (saltoAnterior && posActual.getX()<7){
             Piece pieceSkipped = new Piece(posActual.getX(), posActual.getY());
             if (izq){
-                if (returnMoveLeftSimple(posActual.getX(), posActual.getY()) == 0) {
+                if (returnMoveLeftSimple(scenary, posActual.getX(), posActual.getY()) == 0) {
                     Piece piece = new Piece(posActual.getX() + 1, posActual.getY() - 1);
                     path.add(piece);
                     path.add(pieceSkipped);
-                    explora(izq, true, false, true, posInicial, piece,path, paths, pathInit, true);
+                    explora(scenary,izq, true, false, true, posInicial, piece,path, paths, pathInit, true);
                 }
                 else{
                     return 0;
                 }
             } else {
-                if (returnMoveRightSimple(posActual.getX(), posActual.getY()) == 0) {
+                if (returnMoveRightSimple(scenary, posActual.getX(), posActual.getY()) == 0) {
                     Piece piece = new Piece(posActual.getX() + 1, posActual.getY() + 1);
                     path.add(piece);
                     path.add(pieceSkipped);
-                    explora(izq, true, false, true, posInicial, piece, path, paths, pathInit, true);
+                    explora(scenary,izq, true, false, true, posInicial, piece, path, paths, pathInit, true);
                 }
                 else{
                     return 0;
                 }
             }
         } else if (yaSaltado && inicio){
-            if (returnMoveLeftSimple(posActual.getX(), posActual.getY()) == 1) {
+            int tamPath = path.size();
+            if (returnMoveLeftSimple(scenary, posActual.getX(), posActual.getY()) == 1) {
                 Piece piece = new Piece(posActual.getX() + 1, posActual.getY() - 1);
-                explora(true, false, true, true, posInicial, piece,  path, paths, pathInit, pathInitAdd);
+                explora(scenary,true, false, true, true, posInicial, piece,  path, paths, pathInit, pathInitAdd);
             } else {
                 List<Piece> pathCopy = new ArrayList<>(path);
                 paths.add(pathCopy);
@@ -157,9 +159,9 @@ public class IADamasController {
                 path.subList(ini, fin).clear();
                 return 0;
             }
-            if (returnMoveRightSimple(posActual.getX(), posActual.getY()) == 1) {
+            if (returnMoveRightSimple(scenary, posActual.getX(), posActual.getY()) == 1) {
                 Piece piece = new Piece(posActual.getX() + 1, posActual.getY() + 1);
-                explora(false, false, true, true, posInicial, piece,  path, paths, pathInit,pathInitAdd);
+                explora(scenary,false, false, true, true, posInicial, piece,  path, paths, pathInit,pathInitAdd);
             } else {
                 List<Piece> pathCopy = new ArrayList<>(path);
                 paths.add(pathCopy);
@@ -168,6 +170,12 @@ public class IADamasController {
                 int fin = path.size();
                 path.subList(ini, fin).clear();
                 return 0;
+            }
+            if (tamPath == path.size()){
+                List<Piece> pathCopy = new ArrayList<>(path);
+                paths.add(pathCopy);
+                pathInit.add(posInicial);
+                path.clear();
             }
         }
         return 0;
@@ -176,27 +184,27 @@ public class IADamasController {
         return scenaryBoard.get(row).get(col);
     }
 
-    private void doMove(Movimientos movimientos){
+    private void doMove(Scenary scenary, Movimientos movimientos){
         List<Integer> piece = movimientos.getPiece();
         List<List<Integer>> clavesOrdenadas = new ArrayList<>(movimientos.getMoves().keySet());
         List<Integer> pieceFinal = clavesOrdenadas.get(clavesOrdenadas.size() - 1);
-        scenaryBoard.get(piece.get(0)).set(piece.get(1), 0);
-        scenaryBoard.get(pieceFinal.get(0)).set(pieceFinal.get(1), 2);
+        scenary.getBoard().get(piece.get(0)).set(piece.get(1), 0);
+        scenary.getBoard().get(pieceFinal.get(0)).set(pieceFinal.get(1), 2);
         for (List<Integer> pieceSkipped : movimientos.getMoves().values()) {
             if (!pieceSkipped.isEmpty()){
-                scenaryBoard.get(pieceSkipped.get(0)).set(pieceSkipped.get(1), 0);
+                scenary.getBoard().get(pieceSkipped.get(0)).set(pieceSkipped.get(1), 0);
             }
         }
     }
-    private Integer returnMoveLeftSimple(int row, int col){
+    private Integer returnMoveLeftSimple(Scenary scenary, int row, int col){
         if (col>0 && row<7)
-            return scenaryBoard.get(row+1).get(col-1);
+            return scenary.getBoard().get(row+1).get(col-1);
         else
             return -1;
     }
-    private Integer returnMoveRightSimple(int row, int col){
+    private Integer returnMoveRightSimple(Scenary scenary, int row, int col){
         if (col<7 && row<7)
-            return scenaryBoard.get(row+1).get(col+1);
+            return scenary.getBoard().get(row+1).get(col+1);
         else
             return -1;
     }
