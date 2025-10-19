@@ -6,6 +6,7 @@ import com.example.DamasIA.dto.Scenary;
 import org.springframework.stereotype.Controller;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Controller
 public class IADamasController {
@@ -54,6 +55,7 @@ public class IADamasController {
                 }
             }
         }
+
         System.out.println("PATH "+paths.size());
         System.out.println("PATH INIT "+pathInit.size());
         for(int i=0; i<pathInit.size(); i++){
@@ -63,6 +65,37 @@ public class IADamasController {
             for (Piece piece1 : p){
                 System.out.print(piece1.to_string()+ " ");
             }
+            Movimientos movimientosIter = new Movimientos();
+            movimientosIter.setPiece(pathInit.get(i).getPiece());
+            Map<List<Integer>, List<Integer>> moves = new LinkedHashMap<>();
+            for (int j=0; j<paths.get(i).size(); j+=2){
+                moves.put(paths.get(i).get(j).getPiece(), paths.get(i).get(j+1).getPiece());
+            }
+            movimientosIter.setMoves(moves);
+            //movimientosPosibles.add(movimientosIter);
+            /*
+            System.out.println("");
+            for (int l = 0; l < board.size(); l++) {
+                for (int j = 0; j < board.get(l).size(); j++) {
+                    suma += board.get(l).get(j);
+                    if (board.get(l).get(j) == 0) {
+                        System.out.print("   ");
+                    } else {
+                        System.out.print(" " + board.get(l).get(j).toString() + " ");
+                    }
+                }
+                System.out.println("");
+            }*/
+            List<List<Integer>> boardTest = board.stream()
+                    // 1. Mapea cada sublista a una nueva ArrayList, copiando sus elementos.
+                    .map(ArrayList::new)
+                    // 2. Colecta todas esas nuevas sublistas en una nueva lista exterior.
+                    .collect(Collectors.toList());
+            //List<List<Integer>> boardTest = new ArrayList<>(board);
+            Scenary scenary4 = new Scenary(boardTest);
+            doMove(scenary4, movimientosIter);
+            int heuristic = heuristicScenary(scenary4);
+            System.out.print(" - "+ heuristic);
             System.out.println(" ");
         }
 
@@ -76,10 +109,12 @@ public class IADamasController {
         for (int i=0; i<paths.get(0).size(); i+=2){
             moves.put(paths.get(0).get(i).getPiece(), paths.get(0).get(i+1).getPiece());
         }
+
         movimientosIter.setMoves(moves);
         movimientosPosibles.add(movimientosIter);
         doMove(scenary, movimientosIter);
         System.out.println("ESCENARIO TRAS MOVIMIENTO");
+
         for (int i = 0; i < scenary.getBoard().size(); i++) {
             for (int j = 0; j < scenary.getBoard().get(i).size(); j++) {
                 suma += scenary.getBoard().get(i).get(j);
@@ -184,6 +219,20 @@ public class IADamasController {
         return scenaryBoard.get(row).get(col);
     }
 
+    private int heuristicScenary(Scenary scenary){
+        int fichasJugador = 0;
+        int fichasIA = 0;
+        for (int i = 0; i < scenary.getBoard().size(); i++) {
+            for (int j = 0; j < scenary.getBoard().get(i).size(); j++) {
+                if (scenary.getBoard().get(i).get(j) == 1) {
+                    fichasJugador++;
+                } else if (scenary.getBoard().get(i).get(j) == 2){
+                    fichasIA++;
+                }
+            }
+        }
+        return fichasIA*10 - fichasJugador*10;
+    }
     private void doMove(Scenary scenary, Movimientos movimientos){
         List<Integer> piece = movimientos.getPiece();
         List<List<Integer>> clavesOrdenadas = new ArrayList<>(movimientos.getMoves().keySet());
