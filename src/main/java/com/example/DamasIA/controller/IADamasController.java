@@ -14,11 +14,9 @@ public class IADamasController {
     private List<List<Integer>> scenaryBoard;
 
     public Movimientos getRandomMovs(List<List<Integer>> board) {
-        int suma = 0;
         Scenary scenary = new Scenary(board);
         for (int i = 0; i < scenary.getBoard().size(); i++) {
             for (int j = 0; j < scenary.getBoard().get(i).size(); j++) {
-                suma += scenary.getBoard().get(i).get(j);
                 if (scenary.getBoard().get(i).get(j) == 0) {
                     System.out.print("   ");
                 } else {
@@ -29,35 +27,13 @@ public class IADamasController {
         }
         List<List<Piece>> paths = new ArrayList<>();
         List<Piece> pathInit = new ArrayList<>();
-        //List<Map<Piece, Piece>> movesPosibles = new ArrayList<>();
-        //List<Map<Piece, Piece>> movesSkipPosibles = new ArrayList<>();
         List<Map<List<Integer>, List<Integer>>> movesPosibles = new ArrayList<>();
-        //List<Piece> pieceOrigen = new ArrayList<>();
-        //List<Piece> pieceOrigenSkip = new ArrayList<>();
-        List<Movimientos> movimientosPosibles = new ArrayList<>();
-        Movimientos movimientos = new Movimientos();
-        //Scenary scenary = new Scenary(board);
-        for (int row = 0; row < board.size(); row++) {
-            for (int col = 0; col < board.get(row).size(); col++) {
-                if (board.get(row).get(col) == 2) {
-                    Map<List<Integer>, List<Integer>> moves = new LinkedHashMap<>();
-                    Piece piece = new Piece(row, col);
-                    List<Piece> path = new ArrayList<>();
-                    exploraIA(scenary, true, true, false, false, piece, piece, path, paths,pathInit, false);
-                    //pathInit.add(piece);
-                    Movimientos movimientosIter = new Movimientos();
-                    movimientosIter.setPiece(piece.getPiece());
-                    movimientosIter.setMoves(moves);
-                    if (moves.size()>0){
-                        movesPosibles.add(moves);
-                        movimientosPosibles.add(movimientosIter);
-                    }
-                }
-            }
-        }
+        List<Movimientos> jugadasPosibles = new ArrayList<>();
+        // Movimientos movimientos = new Movimientos();
 
-        System.out.println("PATH "+paths.size());
-        System.out.println("PATH INIT "+pathInit.size());
+        genMovimientosPosibles(scenary, "IA", movesPosibles, jugadasPosibles, paths, pathInit);
+
+        //Para cada movimiento generamos su valor heurisitico
         List<Integer> listHeuristics = new ArrayList<>();
         for(int i=0; i<pathInit.size(); i++){
             List<Piece> p = paths.get(i);
@@ -73,26 +49,11 @@ public class IADamasController {
                 moves.put(paths.get(i).get(j).getPiece(), paths.get(i).get(j+1).getPiece());
             }
             movimientosIter.setMoves(moves);
-            //movimientosPosibles.add(movimientosIter);
-            /*
-            System.out.println("");
-            for (int l = 0; l < board.size(); l++) {
-                for (int j = 0; j < board.get(l).size(); j++) {
-                    suma += board.get(l).get(j);
-                    if (board.get(l).get(j) == 0) {
-                        System.out.print("   ");
-                    } else {
-                        System.out.print(" " + board.get(l).get(j).toString() + " ");
-                    }
-                }
-                System.out.println("");
-            }*/
             List<List<Integer>> boardTest = board.stream()
                     // 1. Mapea cada sublista a una nueva ArrayList, copiando sus elementos.
                     .map(ArrayList::new)
                     // 2. Colecta todas esas nuevas sublistas en una nueva lista exterior.
                     .collect(Collectors.toList());
-            //List<List<Integer>> boardTest = new ArrayList<>(board);
             Scenary scenary4 = new Scenary(boardTest);
             doMove(scenary4, movimientosIter);
             int heuristic = heuristicScenary(scenary4);
@@ -101,10 +62,13 @@ public class IADamasController {
             System.out.println(" ");
         }
 
-        /*
-        for (int i=0; i<movimientosPosibles.size(); i++){
-            movimientosPosibles.get(i).toStringMovs();
-        }*/
+        List<Scenary> listaScenarios = genEscenariosPosibles(scenary, paths, pathInit);
+        System.out.println("ESCENARIOS: "+ listaScenarios.size());
+        for (int i=1; i<=listaScenarios.size(); i++){
+            System.out.println("--- "+i+" ---");
+            printScenary(listaScenarios.get(i-1));
+        }
+        //Calculamos el indice de mayor valor heuristico
         int indexHeuristic=0;
         int maxHeuristic=0;
         for (int i=0 ; i<listHeuristics.size(); i++){
@@ -113,21 +77,20 @@ public class IADamasController {
                 maxHeuristic = listHeuristics.get(i);
             }
         }
-        Movimientos movimientosIter = new Movimientos();
-        movimientosIter.setPiece(pathInit.get(indexHeuristic).getPiece());
+        //Recogemos el movimiento con mayor valor heuristico
+        Movimientos movimientos = new Movimientos();
+        movimientos.setPiece(pathInit.get(indexHeuristic).getPiece());
         Map<List<Integer>, List<Integer>> moves = new LinkedHashMap<>();
         for (int i=0; i<paths.get(indexHeuristic).size(); i+=2){
             moves.put(paths.get(indexHeuristic).get(i).getPiece(), paths.get(indexHeuristic).get(i+1).getPiece());
         }
-
-        movimientosIter.setMoves(moves);
-        movimientosPosibles.add(movimientosIter);
-        doMove(scenary, movimientosIter);
-        System.out.println("ESCENARIO TRAS MOVIMIENTO");
+        //Realizamos los movimientos
+        movimientos.setMoves(moves);
+        doMove(scenary, movimientos);
+        System.out.println("ESCENARIO TRAS MOVIMIENTO IA");
 
         for (int i = 0; i < scenary.getBoard().size(); i++) {
             for (int j = 0; j < scenary.getBoard().get(i).size(); j++) {
-                suma += scenary.getBoard().get(i).get(j);
                 if (scenary.getBoard().get(i).get(j) == 0) {
                     System.out.print("   ");
                 } else {
@@ -136,9 +99,75 @@ public class IADamasController {
             }
             System.out.println("");
         }
-        return movimientosPosibles.get(0);
+
+        return movimientos;
     }
 
+    private void genMovimientosPosibles(Scenary scenary, String jugador, List<Map<List<Integer>, List<Integer>>> movesPosibles,
+                                        List<Movimientos> jugadasPosibles, List<List<Piece>> paths, List<Piece> pathInit) {
+        for (int row = 0; row < scenary.getBoard().size(); row++) {
+            for (int col = 0; col < scenary.getBoard().get(row).size(); col++) {
+                if (jugador.equals("IA") && scenary.getBoard().get(row).get(col) == 2) {
+                    Map<List<Integer>, List<Integer>> moves = new LinkedHashMap<>();
+                    Piece piece = new Piece(row, col);
+                    List<Piece> path = new ArrayList<>();
+                    exploraIA(scenary, true, true, false, false, piece, piece, path, paths,pathInit, false);
+                    Movimientos movimientosIter = new Movimientos();
+                    movimientosIter.setPiece(piece.getPiece());
+                    movimientosIter.setMoves(moves);
+                    if (!moves.isEmpty()){
+                        movesPosibles.add(moves);
+                        jugadasPosibles.add(movimientosIter);
+                    }
+                } else if (jugador.equals("JUG") && scenary.getBoard().get(row).get(col) == 1){
+                    Map<List<Integer>, List<Integer>> moves = new LinkedHashMap<>();
+                    Piece piece = new Piece(row, col);
+                    List<Piece> path = new ArrayList<>();
+                    exploraJugador(scenary, true, true, false, false, piece, piece, path, paths,pathInit, false);
+                    Movimientos movimientosIter = new Movimientos();
+                    movimientosIter.setPiece(piece.getPiece());
+                    movimientosIter.setMoves(moves);
+                    if (!moves.isEmpty()){
+                        movesPosibles.add(moves);
+                        jugadasPosibles.add(movimientosIter);
+                    }
+                }
+            }
+        }
+    }
+    private void printScenary(Scenary scenary){
+        for (int i = 0; i < scenary.getBoard().size(); i++) {
+            for (int j = 0; j < scenary.getBoard().get(i).size(); j++) {
+                if (scenary.getBoard().get(i).get(j) == 0) {
+                    System.out.print("   ");
+                } else {
+                    System.out.print(" " + scenary.getBoard().get(i).get(j).toString() + " ");
+                }
+            }
+            System.out.println("");
+        }
+    }
+    private List<Scenary> genEscenariosPosibles(Scenary scenary, List<List<Piece>> paths, List<Piece> pathInit) {
+        List<Scenary> escenariosPosibles = new ArrayList<>();
+        for(int i=0; i<paths.size(); i++){
+            Movimientos movimientosIter = new Movimientos();
+            movimientosIter.setPiece(pathInit.get(i).getPiece());
+            Map<List<Integer>, List<Integer>> moves = new LinkedHashMap<>();
+            for (int j=0; j<paths.get(i).size(); j+=2){
+                moves.put(paths.get(i).get(j).getPiece(), paths.get(i).get(j+1).getPiece());
+            }
+            movimientosIter.setMoves(moves);
+            List<List<Integer>> boardTest = scenary.getBoard().stream()
+                    // 1. Mapea cada sublista a una nueva ArrayList, copiando sus elementos.
+                    .map(ArrayList::new)
+                    // 2. Colecta todas esas nuevas sublistas en una nueva lista exterior.
+                    .collect(Collectors.toList());
+            Scenary scenaryTest = new Scenary(boardTest);
+            doMove(scenaryTest, movimientosIter);
+            escenariosPosibles.add(scenaryTest);
+        }
+        return escenariosPosibles;
+    }
     public Integer exploraIA(Scenary scenary, boolean izq,boolean inicio, boolean saltoAnterior, boolean yaSaltado, Piece posInicial,
                         Piece posActual, List<Piece> path, List<List<Piece>> paths, List<Piece> pathInit, boolean pathInitAdd){
         if (!yaSaltado && inicio && posActual.getX()<7) {
