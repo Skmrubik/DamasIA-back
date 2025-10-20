@@ -1,6 +1,7 @@
 package com.example.DamasIA.controller;
 
 import com.example.DamasIA.dto.Movimientos;
+import com.example.DamasIA.dto.MovimientosMiniMax;
 import com.example.DamasIA.dto.Piece;
 import com.example.DamasIA.dto.Scenary;
 import org.springframework.stereotype.Controller;
@@ -69,6 +70,7 @@ public class IADamasController {
             printScenary(listaScenarios.get(i-1));
         }
         //Calculamos el indice de mayor valor heuristico
+        /*
         int indexHeuristic=0;
         int maxHeuristic=0;
         for (int i=0 ; i<listHeuristics.size(); i++){
@@ -76,13 +78,18 @@ public class IADamasController {
                 indexHeuristic= i;
                 maxHeuristic = listHeuristics.get(i);
             }
-        }
-        //Recogemos el movimiento con mayor valor heuristico
+        }*/
+        List<Piece> pathsFinal = new ArrayList<>();
+        Piece pathInitFinal = new Piece();
+        MovimientosMiniMax movesMinimax = minimax(0, scenary);
+
+        pathsFinal = movesMinimax.getPathsFinal();
+        pathInitFinal = movesMinimax.getPathInitFinal();
         Movimientos movimientos = new Movimientos();
-        movimientos.setPiece(pathInit.get(indexHeuristic).getPiece());
+        movimientos.setPiece(pathInitFinal.getPiece());
         Map<List<Integer>, List<Integer>> moves = new LinkedHashMap<>();
-        for (int i=0; i<paths.get(indexHeuristic).size(); i+=2){
-            moves.put(paths.get(indexHeuristic).get(i).getPiece(), paths.get(indexHeuristic).get(i+1).getPiece());
+        for (int i=0; i<pathsFinal.size(); i+=2){
+            moves.put(pathsFinal.get(i).getPiece(), pathsFinal.get(i+1).getPiece());
         }
         //Realizamos los movimientos
         movimientos.setMoves(moves);
@@ -103,6 +110,69 @@ public class IADamasController {
         return movimientos;
     }
 
+    private MovimientosMiniMax minimax(int prof, Scenary escenario){
+        if (prof==1){
+            return new MovimientosMiniMax(heuristicScenary(escenario));
+        } else {
+            String turno;
+            if (prof%2== 0){
+                turno = "IA";
+            } else {
+                turno = "JUG";
+            }
+            List<Scenary> escenariosGen = new ArrayList<>();
+            List<Map<List<Integer>, List<Integer>>> movesPosibles = new ArrayList<>();
+            List<Movimientos> jugadasPosibles = new ArrayList<>();
+            List<List<Piece>> paths = new ArrayList<>();
+            List<Piece> pathInit = new ArrayList<>();
+            List<Piece> pathsFinal = new ArrayList<>();
+            Piece pathInitFinal = new Piece();
+            genMovimientosPosibles(escenario, turno, movesPosibles, jugadasPosibles, paths, pathInit);
+            escenariosGen = genEscenariosPosibles(escenario,paths, pathInit);
+            int min = 1000000;
+            int max = -1000000;
+            for (int i=0; i<escenariosGen.size(); i++){
+                MovimientosMiniMax heuristic = minimax(prof+1, escenariosGen.get(i));
+                if (turno == "IA"){
+                    if (heuristic.getMinimax()<min){
+                        min = heuristic.getMinimax();
+                        pathsFinal = paths.get(i);
+                        pathInitFinal = pathInit.get(i);
+                    }
+                } else {
+                    if (heuristic.getMinimax()>max){
+                        max = heuristic.getMinimax();
+                        pathsFinal = paths.get(i);
+                        pathInitFinal = pathInit.get(i);
+                    }
+                }
+            }
+            if (turno == "IA"){
+                return new MovimientosMiniMax(min, pathsFinal, pathInitFinal);
+            } else {
+                return new MovimientosMiniMax(max, pathsFinal, pathInitFinal);
+            }
+        }
+    }
+
+    private Integer calculateMinList(List<Integer> heuristics){
+        int min = 1000000;
+        for(Integer heur: heuristics){
+            if (heur<min){
+                min = heur;
+            }
+        }
+        return min;
+    }
+    private Integer calculateMaxList(List<Integer> heuristics){
+        int max = -10000000;
+        for(Integer heur: heuristics){
+            if (heur>max){
+                max = heur;
+            }
+        }
+        return max;
+    }
     private void genMovimientosPosibles(Scenary scenary, String jugador, List<Map<List<Integer>, List<Integer>>> movesPosibles,
                                         List<Movimientos> jugadasPosibles, List<List<Piece>> paths, List<Piece> pathInit) {
         for (int row = 0; row < scenary.getBoard().size(); row++) {
@@ -346,7 +416,7 @@ public class IADamasController {
         return scenaryBoard.get(row).get(col);
     }
 
-    private int heuristicScenary(Scenary scenary){
+    private Integer heuristicScenary(Scenary scenary){
         int fichasJugador = 0;
         int fichasIA = 0;
         for (int i = 0; i < scenary.getBoard().size(); i++) {
