@@ -85,9 +85,28 @@ public class IADamasController {
         List<Piece> pathsFinal = new ArrayList<>();
         Piece pathInitFinal = new Piece();
         MovimientosMiniMax movesMinimax = minimax(0, scenary, pathsAux);
-
+        //Evitar que haga un movimiento de no comer
+        List<List<Piece>> pathsAuxNoSoplar = new ArrayList<>();
+        List<Piece> pathInitNoSoplar = new ArrayList<>();
         pathsFinal = movesMinimax.getPathsFinal();
         pathInitFinal = movesMinimax.getPathInitFinal();
+        genMovimientosPosibles(scenary, "IA", movesPosibles, jugadasPosibles, pathsAuxNoSoplar, pathInitNoSoplar);
+        int pathSize = pathsFinal.size();
+        if (pathSize == 2 && pathsFinal.get(1).getPiece().isEmpty()){
+            for (int i=0; i<pathsAuxNoSoplar.size(); i++) {
+                if (pathsAuxNoSoplar.get(i).size()==2) {
+                    if (!pathsAuxNoSoplar.get(i).get(1).getPiece().isEmpty() ) {
+                        pathsFinal = pathsAuxNoSoplar.get(i);
+                        pathInitFinal = pathInitNoSoplar.get(i);
+                    }
+                } else if (pathsAuxNoSoplar.get(i).size()>pathSize) {
+                    pathSize = pathsAuxNoSoplar.get(i).size();
+                    pathsFinal = pathsAuxNoSoplar.get(i);
+                    pathInitFinal = pathInitNoSoplar.get(i);
+                }
+            }
+        }
+
         Movimientos movimientos = new Movimientos();
         movimientos.setPiece(pathInitFinal.getPiece());
         Map<List<Integer>, List<Integer>> moves = new LinkedHashMap<>();
@@ -183,6 +202,7 @@ public class IADamasController {
                         }
                     }
                 }
+
                 if (turno == "JUG") {
                     return new MovimientosMiniMax(min, pathsFinal, pathInitFinal);
                 } else {
@@ -336,10 +356,10 @@ public class IADamasController {
                 Piece piece = new Piece(posActual.getX() + 1, posActual.getY() - 1);
                 exploraIA(scenary,true, false, true, true, posInicial, piece,  path, paths, pathInit, pathInitAdd);
             } else {
-                List<Piece> pathCopy = new ArrayList<>(path);
-                paths.add(pathCopy);
-                pathInit.add(posInicial);
                 if (path.size() > 2){
+                    List<Piece> pathCopy = new ArrayList<>(path);
+                    paths.add(pathCopy);
+                    pathInit.add(posInicial);
                     int ini = path.size() - 2; // En este caso: 5 - 2 = 3
                     int fin = path.size();
                     path.subList(ini, fin).clear();
@@ -350,10 +370,10 @@ public class IADamasController {
                 Piece piece = new Piece(posActual.getX() + 1, posActual.getY() + 1);
                 exploraIA(scenary,false, false, true, true, posInicial, piece,  path, paths, pathInit,pathInitAdd);
             } else {
-                List<Piece> pathCopy = new ArrayList<>(path);
-                paths.add(pathCopy);
-                pathInit.add(posInicial);
                 if (path.size() > 2){
+                    List<Piece> pathCopy = new ArrayList<>(path);
+                    paths.add(pathCopy);
+                    pathInit.add(posInicial);
                     int ini = path.size() - 2; // En este caso: 5 - 2 = 3
                     int fin = path.size();
                     path.subList(ini, fin).clear();
@@ -427,10 +447,10 @@ public class IADamasController {
                 Piece piece = new Piece(posActual.getX() - 1, posActual.getY() - 1);
                 exploraJugador(scenary,true, false, true, true, posInicial, piece,  path, paths, pathInit, pathInitAdd);
             } else {
-                List<Piece> pathCopy = new ArrayList<>(path);
-                paths.add(pathCopy);
-                pathInit.add(posInicial);
                 if (path.size() > 2){
+                    List<Piece> pathCopy = new ArrayList<>(path);
+                    paths.add(pathCopy);
+                    pathInit.add(posInicial);
                     int ini = path.size() - 2; // En este caso: 5 - 2 = 3
                     int fin = path.size();
                     path.subList(ini, fin).clear();
@@ -441,10 +461,10 @@ public class IADamasController {
                 Piece piece = new Piece(posActual.getX() - 1, posActual.getY() + 1);
                 exploraJugador(scenary,false, false, true, true, posInicial, piece,  path, paths, pathInit,pathInitAdd);
             } else {
-                List<Piece> pathCopy = new ArrayList<>(path);
-                paths.add(pathCopy);
-                pathInit.add(posInicial);
                 if (path.size() > 2){
+                    List<Piece> pathCopy = new ArrayList<>(path);
+                    paths.add(pathCopy);
+                    pathInit.add(posInicial);
                     int ini = path.size() - 2; // En este caso: 5 - 2 = 3
                     int fin = path.size();
                     path.subList(ini, fin).clear();
@@ -477,8 +497,8 @@ public class IADamasController {
                 }
             }
         }
-        fichasIA*=10;
-        fichasJugador*=10;
+        fichasIA*=50;
+        fichasJugador*=50;
         System.out.println("Fichas IA: " +fichasIA+ " , fichasJugador: "+ fichasJugador);
         int sumaPosiblesMovs=0;
         for (List<Piece> mov: pathsJugador) {
@@ -495,7 +515,7 @@ public class IADamasController {
             }
 
         }
-        return (fichasIA*50) - (fichasJugador*50) - sumaPosiblesMovs;
+        return fichasIA - fichasJugador - sumaPosiblesMovs;
     }
     private void doMove(Scenary scenary, Movimientos movimientos, String turno){
         if (!movimientos.getMoves().isEmpty()){
