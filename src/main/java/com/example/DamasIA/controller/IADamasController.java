@@ -65,7 +65,7 @@ public class IADamasController {
             System.out.println(" ");*/
         }
 
-        List<Scenary> listaScenarios = genEscenariosPosibles(scenary, paths, pathInit);
+        List<Scenary> listaScenarios = genEscenariosPosibles(scenary, paths, pathInit, "IA");
         System.out.println("ESCENARIOS: "+ listaScenarios.size());
         for (int i=1; i<=listaScenarios.size(); i++){
             System.out.println("--- "+i+" ---");
@@ -96,7 +96,7 @@ public class IADamasController {
         }
         //Realizamos los movimientos
         movimientos.setMoves(moves);
-        doMove(scenary, movimientos);
+        doMove(scenary, movimientos, "IA");
         System.out.println("ESCENARIO TRAS MOVIMIENTO IA");
 
         for (int i = 0; i < scenary.getBoard().size(); i++) {
@@ -114,7 +114,8 @@ public class IADamasController {
     }
 
     private MovimientosMiniMax minimax(int prof, Scenary escenario, List<List<Piece>> paths){
-        if (prof==1){
+
+        if (prof==3){
             List<Map<List<Integer>, List<Integer>>> movesPosibles = new ArrayList<>();
             List<Movimientos> jugadasPosibles = new ArrayList<>();
             List<List<Piece>> pathsAux = new ArrayList<>();
@@ -157,7 +158,13 @@ public class IADamasController {
             List<Piece> pathsFinal = new ArrayList<>();
             Piece pathInitFinal = new Piece();
             genMovimientosPosibles(escenario, turno, movesPosibles, jugadasPosibles, pathsAux, pathInit);
-            escenariosGen = genEscenariosPosibles(escenario,pathsAux, pathInit);
+            List<List<Integer>> boardTest = escenario.getBoard().stream()
+                    // 1. Mapea cada sublista a una nueva ArrayList, copiando sus elementos.
+                    .map(ArrayList::new)
+                    // 2. Colecta todas esas nuevas sublistas en una nueva lista exterior.
+                    .collect(Collectors.toList());
+            Scenary escenarioAux = new Scenary(boardTest);
+            escenariosGen = genEscenariosPosibles(escenarioAux,pathsAux, pathInit, turno);
             int min = 1000000;
             int max = -1000000;
             for (int i=0; i<escenariosGen.size(); i++){
@@ -247,7 +254,7 @@ public class IADamasController {
         }
 
     }
-    private List<Scenary> genEscenariosPosibles(Scenary scenary, List<List<Piece>> paths, List<Piece> pathInit) {
+    private List<Scenary> genEscenariosPosibles(Scenary scenary, List<List<Piece>> paths, List<Piece> pathInit, String turno) {
         List<Scenary> escenariosPosibles = new ArrayList<>();
         for(int i=0; i<paths.size(); i++){
             Movimientos movimientosIter = new Movimientos();
@@ -263,7 +270,7 @@ public class IADamasController {
                     // 2. Colecta todas esas nuevas sublistas en una nueva lista exterior.
                     .collect(Collectors.toList());
             Scenary scenaryTest = new Scenary(boardTest);
-            doMove(scenaryTest, movimientosIter);
+            doMove(scenaryTest, movimientosIter, turno);
             escenariosPosibles.add(scenaryTest);
         }
         return escenariosPosibles;
@@ -460,6 +467,7 @@ public class IADamasController {
         }
         fichasIA*=10;
         fichasJugador*=10;
+        System.out.println("Fichas IA: " +fichasIA+ " , fichasJugador: "+ fichasJugador);
         int sumaPosiblesMovs=0;
         for (List<Piece> mov: pathsJugador) {
             if (mov.size() <3){
@@ -477,15 +485,28 @@ public class IADamasController {
         }
         return (fichasIA*50) - (fichasJugador*50) - sumaPosiblesMovs;
     }
-    private void doMove(Scenary scenary, Movimientos movimientos){
-        List<Integer> piece = movimientos.getPiece();
-        List<List<Integer>> clavesOrdenadas = new ArrayList<>(movimientos.getMoves().keySet());
-        List<Integer> pieceFinal = clavesOrdenadas.get(clavesOrdenadas.size() - 1);
-        scenary.getBoard().get(piece.get(0)).set(piece.get(1), 0);
-        scenary.getBoard().get(pieceFinal.get(0)).set(pieceFinal.get(1), 2);
-        for (List<Integer> pieceSkipped : movimientos.getMoves().values()) {
-            if (!pieceSkipped.isEmpty()){
-                scenary.getBoard().get(pieceSkipped.get(0)).set(pieceSkipped.get(1), 0);
+    private void doMove(Scenary scenary, Movimientos movimientos, String turno){
+        if (turno.equals("IA")) {
+            List<Integer> piece = movimientos.getPiece();
+            List<List<Integer>> clavesOrdenadas = new ArrayList<>(movimientos.getMoves().keySet());
+            List<Integer> pieceFinal = clavesOrdenadas.get(clavesOrdenadas.size() - 1);
+            scenary.getBoard().get(piece.get(0)).set(piece.get(1), 0);
+            scenary.getBoard().get(pieceFinal.get(0)).set(pieceFinal.get(1), 2);
+            for (List<Integer> pieceSkipped : movimientos.getMoves().values()) {
+                if (!pieceSkipped.isEmpty()) {
+                    scenary.getBoard().get(pieceSkipped.get(0)).set(pieceSkipped.get(1), 0);
+                }
+            }
+        } else {
+            List<Integer> piece = movimientos.getPiece();
+            List<List<Integer>> clavesOrdenadas = new ArrayList<>(movimientos.getMoves().keySet());
+            List<Integer> pieceFinal = clavesOrdenadas.get(clavesOrdenadas.size() - 1);
+            scenary.getBoard().get(piece.get(0)).set(piece.get(1), 0);
+            scenary.getBoard().get(pieceFinal.get(0)).set(pieceFinal.get(1), 1);
+            for (List<Integer> pieceSkipped : movimientos.getMoves().values()) {
+                if (!pieceSkipped.isEmpty()) {
+                    scenary.getBoard().get(pieceSkipped.get(0)).set(pieceSkipped.get(1), 0);
+                }
             }
         }
     }
