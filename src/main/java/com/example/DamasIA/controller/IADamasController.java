@@ -35,6 +35,7 @@ public class IADamasController {
         genMovimientosPosibles(scenary, "IA", movesPosibles, jugadasPosibles, paths, pathInit);
 
         //Para cada movimiento generamos su valor heurisitico
+
         List<Integer> listHeuristics = new ArrayList<>();
         for(int i=0; i<pathInit.size(); i++){
             List<Piece> p = paths.get(i);
@@ -43,6 +44,7 @@ public class IADamasController {
             for (Piece piece1 : p){
                 System.out.print(piece1.to_string()+ " ");
             }
+            /*
             Movimientos movimientosIter = new Movimientos();
             movimientosIter.setPiece(pathInit.get(i).getPiece());
             Map<List<Integer>, List<Integer>> moves = new LinkedHashMap<>();
@@ -60,7 +62,7 @@ public class IADamasController {
             int heuristic = heuristicScenary(scenary4);
             listHeuristics.add(heuristic);
             System.out.print(" - "+ heuristic);
-            System.out.println(" ");
+            System.out.println(" ");*/
         }
 
         List<Scenary> listaScenarios = genEscenariosPosibles(scenary, paths, pathInit);
@@ -79,9 +81,10 @@ public class IADamasController {
                 maxHeuristic = listHeuristics.get(i);
             }
         }*/
+        List<List<Piece>> pathsAux = new ArrayList<>();
         List<Piece> pathsFinal = new ArrayList<>();
         Piece pathInitFinal = new Piece();
-        MovimientosMiniMax movesMinimax = minimax(0, scenary);
+        MovimientosMiniMax movesMinimax = minimax(0, scenary, pathsAux);
 
         pathsFinal = movesMinimax.getPathsFinal();
         pathInitFinal = movesMinimax.getPathInitFinal();
@@ -110,9 +113,35 @@ public class IADamasController {
         return movimientos;
     }
 
-    private MovimientosMiniMax minimax(int prof, Scenary escenario){
+    private MovimientosMiniMax minimax(int prof, Scenary escenario, List<List<Piece>> paths){
         if (prof==1){
-            return new MovimientosMiniMax(heuristicScenary(escenario));
+            List<Map<List<Integer>, List<Integer>>> movesPosibles = new ArrayList<>();
+            List<Movimientos> jugadasPosibles = new ArrayList<>();
+            List<List<Piece>> pathsAux = new ArrayList<>();
+            List<Piece> pathInit = new ArrayList<>();
+            genMovimientosPosibles(escenario, "JUG", movesPosibles, jugadasPosibles, pathsAux, pathInit);
+            System.out.println("MOVIMIENTO");
+            for (int i = 0; i < escenario.getBoard().size(); i++) {
+                for (int j = 0; j < escenario.getBoard().get(i).size(); j++) {
+                    if (escenario.getBoard().get(i).get(j) == 0) {
+                        System.out.print("   ");
+                    } else {
+                        System.out.print(" " + escenario.getBoard().get(i).get(j).toString() + " ");
+                    }
+                }
+                System.out.println("");
+            }
+            for(int i=0; i<pathsAux.size(); i++){
+                List<Piece> p = pathsAux.get(i);
+                Piece pieceInit = pathInit.get(i);
+                System.out.print(pieceInit.to_string()+ ": ");
+                for (Piece piece1 : p){
+                    System.out.print(piece1.to_string()+ " ");
+                }
+                System.out.println("");
+            }
+            System.out.println("Heuristica: "+ heuristicScenary(escenario,pathsAux));
+            return new MovimientosMiniMax(heuristicScenary(escenario,pathsAux));
         } else {
             String turno;
             if (prof%2== 0){
@@ -123,31 +152,31 @@ public class IADamasController {
             List<Scenary> escenariosGen = new ArrayList<>();
             List<Map<List<Integer>, List<Integer>>> movesPosibles = new ArrayList<>();
             List<Movimientos> jugadasPosibles = new ArrayList<>();
-            List<List<Piece>> paths = new ArrayList<>();
+            List<List<Piece>> pathsAux = new ArrayList<>();
             List<Piece> pathInit = new ArrayList<>();
             List<Piece> pathsFinal = new ArrayList<>();
             Piece pathInitFinal = new Piece();
-            genMovimientosPosibles(escenario, turno, movesPosibles, jugadasPosibles, paths, pathInit);
-            escenariosGen = genEscenariosPosibles(escenario,paths, pathInit);
+            genMovimientosPosibles(escenario, turno, movesPosibles, jugadasPosibles, pathsAux, pathInit);
+            escenariosGen = genEscenariosPosibles(escenario,pathsAux, pathInit);
             int min = 1000000;
             int max = -1000000;
             for (int i=0; i<escenariosGen.size(); i++){
-                MovimientosMiniMax heuristic = minimax(prof+1, escenariosGen.get(i));
-                if (turno == "IA"){
+                MovimientosMiniMax heuristic = minimax(prof+1, escenariosGen.get(i), pathsAux);
+                if (turno == "JUG"){
                     if (heuristic.getMinimax()<min){
                         min = heuristic.getMinimax();
-                        pathsFinal = paths.get(i);
+                        pathsFinal = pathsAux.get(i);
                         pathInitFinal = pathInit.get(i);
                     }
                 } else {
                     if (heuristic.getMinimax()>max){
                         max = heuristic.getMinimax();
-                        pathsFinal = paths.get(i);
+                        pathsFinal = pathsAux.get(i);
                         pathInitFinal = pathInit.get(i);
                     }
                 }
             }
-            if (turno == "IA"){
+            if (turno == "JUG"){
                 return new MovimientosMiniMax(min, pathsFinal, pathInitFinal);
             } else {
                 return new MovimientosMiniMax(max, pathsFinal, pathInitFinal);
@@ -216,6 +245,7 @@ public class IADamasController {
             }
             System.out.println("");
         }
+
     }
     private List<Scenary> genEscenariosPosibles(Scenary scenary, List<List<Piece>> paths, List<Piece> pathInit) {
         List<Scenary> escenariosPosibles = new ArrayList<>();
@@ -339,7 +369,7 @@ public class IADamasController {
                 paths.add(pathCopy);
                 pathInit.add(posInicial);
                 path.clear();
-            } else if (left == 1) {
+            } else if (left == 2) {
                 exploraJugador(scenary,true, false, true, false, posInicial, pieceLeft, path, paths, pathInit, false);
             }
             if (right == 0) {
@@ -349,7 +379,7 @@ public class IADamasController {
                 paths.add(pathCopy);
                 pathInit.add(posInicial);
                 path.clear();
-            } else if (right == 1) {
+            } else if (right == 2) {
                 exploraJugador(scenary,false, false, true, false, posInicial, pieceRight,  path, paths, pathInit, false);
             }
             return 0;
@@ -378,7 +408,7 @@ public class IADamasController {
             }
         } else if (yaSaltado && inicio){
             int tamPath = path.size();
-            if (returnMoveLeftSimpleJugador(scenary, posActual.getX(), posActual.getY()) == 1) {
+            if (returnMoveLeftSimpleJugador(scenary, posActual.getX(), posActual.getY()) == 2) {
                 Piece piece = new Piece(posActual.getX() - 1, posActual.getY() - 1);
                 exploraJugador(scenary,true, false, true, true, posInicial, piece,  path, paths, pathInit, pathInitAdd);
             } else {
@@ -390,7 +420,7 @@ public class IADamasController {
                 path.subList(ini, fin).clear();
                 return 0;
             }
-            if (returnMoveRightSimpleJugador(scenary, posActual.getX(), posActual.getY()) == 1) {
+            if (returnMoveRightSimpleJugador(scenary, posActual.getX(), posActual.getY()) == 2) {
                 Piece piece = new Piece(posActual.getX() - 1, posActual.getY() + 1);
                 exploraJugador(scenary,false, false, true, true, posInicial, piece,  path, paths, pathInit,pathInitAdd);
             } else {
@@ -416,7 +446,7 @@ public class IADamasController {
         return scenaryBoard.get(row).get(col);
     }
 
-    private Integer heuristicScenary(Scenary scenary){
+    private Integer heuristicScenary(Scenary scenary, List<List<Piece>> pathsJugador){
         int fichasJugador = 0;
         int fichasIA = 0;
         for (int i = 0; i < scenary.getBoard().size(); i++) {
@@ -428,7 +458,24 @@ public class IADamasController {
                 }
             }
         }
-        return fichasIA*10 - fichasJugador*10;
+        fichasIA*=10;
+        fichasJugador*=10;
+        int sumaPosiblesMovs=0;
+        for (List<Piece> mov: pathsJugador) {
+            if (mov.size() <3){
+                if(mov.get(1).getPiece().isEmpty())
+                    sumaPosiblesMovs+=1;
+                else
+                    sumaPosiblesMovs+=3;
+            }
+            else if (mov.size() <7){
+                sumaPosiblesMovs+=6;
+            } else {
+                sumaPosiblesMovs+=10;
+            }
+
+        }
+        return (fichasIA*50) - (fichasJugador*50) - sumaPosiblesMovs;
     }
     private void doMove(Scenary scenary, Movimientos movimientos){
         List<Integer> piece = movimientos.getPiece();
