@@ -44,7 +44,7 @@ public class IADamasController {
             for (Piece piece1 : p){
                 System.out.print(piece1.to_string()+ " ");
             }
-            /*
+
             Movimientos movimientosIter = new Movimientos();
             movimientosIter.setPiece(pathInit.get(i).getPiece());
             Map<List<Integer>, List<Integer>> moves = new LinkedHashMap<>();
@@ -58,11 +58,12 @@ public class IADamasController {
                     // 2. Colecta todas esas nuevas sublistas en una nueva lista exterior.
                     .collect(Collectors.toList());
             Scenary scenary4 = new Scenary(boardTest);
-            doMove(scenary4, movimientosIter);
-            int heuristic = heuristicScenary(scenary4);
+            doMove(scenary4, movimientosIter, "IA");
+            List<List<Piece>> pathsJugador = new ArrayList<>();
+            int heuristic = heuristicScenary(scenary4, pathsJugador);
             listHeuristics.add(heuristic);
             System.out.print(" - "+ heuristic);
-            System.out.println(" ");*/
+            System.out.println(" ");
         }
 
         List<Scenary> listaScenarios = genEscenariosPosibles(scenary, paths, pathInit, "IA");
@@ -134,12 +135,13 @@ public class IADamasController {
 
     private MovimientosMiniMax minimax(int prof, Scenary escenario, List<List<Piece>> paths){
         try {
-            if (prof == 3) {
+            if (prof == 5) {
                 List<Map<List<Integer>, List<Integer>>> movesPosibles = new ArrayList<>();
                 List<Movimientos> jugadasPosibles = new ArrayList<>();
                 List<List<Piece>> pathsAux = new ArrayList<>();
                 List<Piece> pathInit = new ArrayList<>();
                 genMovimientosPosibles(escenario, "JUG", movesPosibles, jugadasPosibles, pathsAux, pathInit);
+                /*
                 System.out.println("MOVIMIENTO");
                 for (int i = 0; i < escenario.getBoard().size(); i++) {
                     for (int j = 0; j < escenario.getBoard().get(i).size(); j++) {
@@ -160,7 +162,7 @@ public class IADamasController {
                     }
                     System.out.println("");
                 }
-                System.out.println("Heuristica: " + heuristicScenary(escenario, pathsAux));
+                System.out.println("Heuristica: " + heuristicScenary(escenario, pathsAux));*/
                 return new MovimientosMiniMax(heuristicScenary(escenario, pathsAux));
             } else {
                 String turno;
@@ -356,7 +358,7 @@ public class IADamasController {
                 Piece piece = new Piece(posActual.getX() + 1, posActual.getY() - 1);
                 exploraIA(scenary,true, false, true, true, posInicial, piece,  path, paths, pathInit, pathInitAdd);
             } else {
-                if (path.size() > 2){
+                if (path.size()>1){
                     List<Piece> pathCopy = new ArrayList<>(path);
                     paths.add(pathCopy);
                     pathInit.add(posInicial);
@@ -370,7 +372,7 @@ public class IADamasController {
                 Piece piece = new Piece(posActual.getX() + 1, posActual.getY() + 1);
                 exploraIA(scenary,false, false, true, true, posInicial, piece,  path, paths, pathInit,pathInitAdd);
             } else {
-                if (path.size() > 2){
+                if(path.size()>1){
                     List<Piece> pathCopy = new ArrayList<>(path);
                     paths.add(pathCopy);
                     pathInit.add(posInicial);
@@ -489,29 +491,38 @@ public class IADamasController {
         int fichasJugador = 0;
         int fichasIA = 0;
         for (int i = 0; i < scenary.getBoard().size(); i++) {
-            for (int j = 0; j < scenary.getBoard().get(i).size(); j++) {
-                if (scenary.getBoard().get(i).get(j) == 1) {
-                    fichasJugador++;
-                } else if (scenary.getBoard().get(i).get(j) == 2){
-                    fichasIA++;
+            for (int j = 0; j < scenary.getBoard().get(i).size(); j+=2) {
+                if (i%2==0){
+                    if (scenary.getBoard().get(i).get(j+1) == 1) {
+                        fichasJugador++;
+                    } else if (scenary.getBoard().get(i).get(j+1) == 2){
+                        fichasIA++;
+                    }
+                } else {
+                    if (scenary.getBoard().get(i).get(j) == 1) {
+                        fichasJugador++;
+                    } else if (scenary.getBoard().get(i).get(j) == 2){
+                        fichasIA++;
+                    }
                 }
+
             }
         }
         fichasIA*=50;
         fichasJugador*=50;
-        System.out.println("Fichas IA: " +fichasIA+ " , fichasJugador: "+ fichasJugador);
+        //System.out.println("Fichas IA: " +fichasIA+ " , fichasJugador: "+ fichasJugador);
         int sumaPosiblesMovs=0;
         for (List<Piece> mov: pathsJugador) {
-            if (mov.size() <3 && mov.size()> 1){
+            if (mov.size() ==2){
                 if(mov.get(1).getPiece().isEmpty())
                     sumaPosiblesMovs+=1;
                 else
-                    sumaPosiblesMovs+=3;
+                    sumaPosiblesMovs+=10;
             }
-            else if (mov.size() <7){
-                sumaPosiblesMovs+=6;
+            else if (mov.size() ==4){
+                sumaPosiblesMovs+=20;
             } else {
-                sumaPosiblesMovs+=10;
+                sumaPosiblesMovs+=30;
             }
 
         }
