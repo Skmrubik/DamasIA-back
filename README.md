@@ -1,0 +1,1 @@
+Implementación de el algoritmo Minimax para crear un agente con IA para jugar a las Damas. Pero me falta integrar la parte en la que las damas se convierten en reinas y se mueven muchas casillas. Lo he dejado, porque creo que la norma de "soplar por no comer" de las damas española no favorece al algoritmo Minimax y estaba actuando de manera extraña.
